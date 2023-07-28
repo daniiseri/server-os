@@ -1,0 +1,444 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL_MYSQL")
+}
+
+model anexos {
+  idAnexos Int     @id @default(autoincrement())
+  anexo    String? @db.VarChar(45)
+  thumb    String? @db.VarChar(45)
+  url      String? @db.VarChar(300)
+  path     String? @db.VarChar(300)
+  os_id    String
+  os       os      @relation(fields: [os_id], references: [idOs], onDelete: NoAction, onUpdate: NoAction, map: "fk_anexos_os1")
+
+  @@index([os_id], map: "fk_anexos_os1")
+}
+
+model anotacoes_os {
+  idAnotacoes Int      @id @default(autoincrement())
+  anotacao    String   @db.VarChar(255)
+  data_hora   DateTime @db.DateTime(0)
+  os_id       Int
+}
+
+model categorias {
+  idCategorias Int           @id @default(autoincrement())
+  categoria    String?       @db.VarChar(80)
+  cadastro     DateTime?     @db.Date
+  status       Boolean?
+  tipo         String?       @db.VarChar(15)
+  lancamentos  lancamentos[]
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model ci_sessions {
+  id         String @db.VarChar(128)
+  ip_address String @db.VarChar(45)
+  timestamp  Int    @default(0) @db.UnsignedInt
+  data       Bytes  @db.Blob
+
+  @@index([timestamp], map: "ci_sessions_timestamp")
+  @@ignore
+}
+
+model clientes {
+  idClientes    String         @id @default(uuid())
+  asaas_id      String?        @db.VarChar(255)
+  nomeCliente   String         @db.VarChar(255)
+  sexo          String?        @db.VarChar(20)
+  pessoa_fisica Boolean?       @default(true)
+  documento     String?        @db.VarChar(20)
+  telefone      String?        @db.VarChar(20)
+  celular       String?        @db.VarChar(20)
+  email         String?        @db.VarChar(100)
+  senha         String?        @db.VarChar(200)
+  dataCadastro  DateTime       @db.Date
+  rua           String?        @db.VarChar(70)
+  numero        String?        @db.VarChar(15)
+  bairro        String?        @db.VarChar(45)
+  cidade        String?        @db.VarChar(45)
+  estado        String?        @db.VarChar(20)
+  cep           String?        @db.VarChar(20)
+  contato       String?        @db.VarChar(45)
+  complemento   String?        @db.VarChar(45)
+  fornecedor    Boolean?       @default(false)
+  cobrancas     cobrancas[]
+  equipamentos  equipamentos[]
+  lancamentos   lancamentos[]
+  os            os[]
+  vendas        vendas[]
+}
+
+model cobrancas {
+  idCobranca                Int       @id @default(autoincrement())
+  charge_id                 String?   @db.VarChar(255)
+  conditional_discount_date DateTime? @db.Date
+  created_at                DateTime? @db.DateTime(0)
+  custom_id                 Int?
+  expire_at                 DateTime  @db.Date
+  message                   String    @db.VarChar(255)
+  payment_method            String?   @db.VarChar(11)
+  payment_url               String?   @db.VarChar(255)
+  request_delivery_address  String?   @db.VarChar(64)
+  status                    String    @db.VarChar(36)
+  total                     String?   @db.VarChar(15)
+  barcode                   String    @db.VarChar(255)
+  link                      String    @db.VarChar(255)
+  payment_gateway           String?   @db.VarChar(255)
+  payment                   String    @db.VarChar(64)
+  pdf                       String?   @db.VarChar(255)
+  vendas_id                 Int?
+  os_id                     String?
+  clientes_id               String?
+  clientes                  clientes? @relation(fields: [clientes_id], references: [idClientes], onDelete: NoAction, onUpdate: NoAction, map: "fk_cobrancas_clientes1")
+  os                        os?       @relation(fields: [os_id], references: [idOs], onDelete: NoAction, onUpdate: NoAction, map: "fk_cobrancas_os1")
+  vendas                    vendas?   @relation(fields: [vendas_id], references: [idVendas], onDelete: NoAction, onUpdate: NoAction, map: "fk_cobrancas_vendas1")
+
+  @@index([clientes_id], map: "fk_cobrancas_clientes1")
+  @@index([os_id], map: "fk_cobrancas_os1")
+  @@index([vendas_id], map: "fk_cobrancas_vendas1")
+}
+
+model configuracoes {
+  idConfig Int     @id @default(autoincrement())
+  config   String  @unique(map: "config") @db.VarChar(20)
+  valor    String? @db.Text
+}
+
+model contas {
+  idContas    Int           @id @default(autoincrement())
+  conta       String?       @db.VarChar(45)
+  banco       String?       @db.VarChar(45)
+  numero      String?       @db.VarChar(45)
+  saldo       Decimal?      @db.Decimal(10, 2)
+  cadastro    DateTime?     @db.Date
+  status      Boolean?
+  tipo        String?       @db.VarChar(80)
+  lancamentos lancamentos[]
+}
+
+model documentos {
+  idDocumentos Int       @id @default(autoincrement())
+  documento    String?   @db.VarChar(70)
+  descricao    String?   @db.Text
+  file         String?   @db.VarChar(100)
+  path         String?   @db.VarChar(300)
+  url          String?   @db.VarChar(300)
+  cadastro     DateTime? @db.Date
+  categoria    String?   @db.VarChar(80)
+  tipo         String?   @db.VarChar(15)
+  tamanho      String?   @db.VarChar(45)
+}
+
+model email_queue {
+  id      Int                 @id @default(autoincrement())
+  to      String              @db.VarChar(255)
+  cc      String?             @db.VarChar(255)
+  bcc     String?             @db.VarChar(255)
+  message String              @db.Text
+  status  email_queue_status?
+  date    DateTime?           @db.DateTime(0)
+  headers String?             @db.Text
+}
+
+model emitente {
+  id       Int     @id @default(autoincrement())
+  nome     String? @db.VarChar(255)
+  cnpj     String? @db.VarChar(45)
+  ie       String? @db.VarChar(50)
+  rua      String? @db.VarChar(70)
+  numero   String? @db.VarChar(15)
+  bairro   String? @db.VarChar(45)
+  cidade   String? @db.VarChar(45)
+  uf       String? @db.VarChar(20)
+  telefone String? @db.VarChar(20)
+  email    String? @db.VarChar(255)
+  url_logo String? @db.VarChar(225)
+  cep      String? @db.VarChar(20)
+}
+
+model equipamentos {
+  idEquipamentos  Int               @id @default(autoincrement())
+  equipamento     String            @db.VarChar(150)
+  num_serie       String?           @db.VarChar(80)
+  modelo          String?           @db.VarChar(80)
+  cor             String?           @db.VarChar(45)
+  descricao       String?           @db.VarChar(150)
+  tensao          String?           @db.VarChar(45)
+  potencia        String?           @db.VarChar(45)
+  voltagem        String?           @db.VarChar(45)
+  data_fabricacao DateTime?         @db.Date
+  marcas_id       Int?
+  clientes_id     String?
+  clientes        clientes?         @relation(fields: [clientes_id], references: [idClientes], onDelete: NoAction, onUpdate: NoAction, map: "fk_equipanentos_clientes1")
+  marcas          marcas?           @relation(fields: [marcas_id], references: [idMarcas], onDelete: NoAction, onUpdate: NoAction, map: "fk_equipanentos_marcas1")
+  equipamentos_os equipamentos_os[]
+
+  @@index([clientes_id], map: "fk_equipanentos_clientes1_idx")
+  @@index([marcas_id], map: "fk_equipanentos_marcas1_idx")
+}
+
+model equipamentos_os {
+  idEquipamentos_os  Int           @id @default(autoincrement())
+  defeito_declarado  String?       @db.VarChar(200)
+  defeito_encontrado String?       @db.VarChar(200)
+  solucao            String?       @db.VarChar(45)
+  equipamentos_id    Int?
+  os_id              String?
+  equipamentos       equipamentos? @relation(fields: [equipamentos_id], references: [idEquipamentos], onDelete: NoAction, onUpdate: NoAction, map: "fk_equipamentos_os_equipanentos1")
+  os                 os?           @relation(fields: [os_id], references: [idOs], onDelete: NoAction, onUpdate: NoAction, map: "fk_equipamentos_os_os1")
+
+  @@index([equipamentos_id], map: "fk_equipamentos_os_equipanentos1_idx")
+  @@index([os_id], map: "fk_equipamentos_os_os1_idx")
+}
+
+model garantias {
+  idGarantias   Int       @id @default(autoincrement())
+  dataGarantia  DateTime? @db.Date
+  refGarantia   String?   @db.VarChar(15)
+  textoGarantia String?   @db.Text
+  usuarios_id   String?
+  usuarios      usuarios? @relation(fields: [usuarios_id], references: [idUsuarios], onDelete: NoAction, onUpdate: NoAction, map: "fk_garantias_usuarios1")
+
+  @@index([usuarios_id], map: "fk_garantias_usuarios1")
+}
+
+model itens_de_vendas {
+  idItens     Int      @id @default(autoincrement())
+  subTotal    Decimal? @default(0.00) @db.Decimal(10, 2)
+  quantidade  Int?
+  preco       Decimal? @default(0.00) @db.Decimal(10, 2)
+  vendas_id   Int
+  produtos_id String
+  produtos    produtos @relation(fields: [produtos_id], references: [idProdutos], onDelete: NoAction, onUpdate: NoAction, map: "fk_itens_de_vendas_produtos1")
+  vendas      vendas   @relation(fields: [vendas_id], references: [idVendas], onDelete: NoAction, onUpdate: NoAction, map: "fk_itens_de_vendas_vendas1")
+
+  @@index([produtos_id], map: "fk_itens_de_vendas_produtos1")
+  @@index([vendas_id], map: "fk_itens_de_vendas_vendas1")
+}
+
+model lancamentos {
+  idLancamentos      Int         @id @default(autoincrement())
+  descricao          String?     @db.VarChar(255)
+  valor              Decimal?    @default(0.00) @db.Decimal(10, 2)
+  desconto           Decimal?    @default(0.00) @db.Decimal(10, 2)
+  valor_desconto     Decimal?    @default(0.00) @db.Decimal(10, 2)
+  tipo_desconto      String?     @db.VarChar(8)
+  data_vencimento    DateTime    @db.Date
+  data_pagamento     DateTime?   @db.Date
+  baixado            Boolean?    @default(false)
+  cliente_fornecedor String?     @db.VarChar(255)
+  forma_pgto         String?     @db.VarChar(100)
+  tipo               String?     @db.VarChar(45)
+  anexo              String?     @db.VarChar(250)
+  observacoes        String?     @db.Text
+  clientes_id        String?
+  categorias_id      Int?
+  contas_id          Int?
+  vendas_id          Int?
+  usuarios_id        String
+  categorias         categorias? @relation(fields: [categorias_id], references: [idCategorias], onDelete: NoAction, onUpdate: NoAction, map: "fk_lancamentos_categorias1")
+  clientes           clientes?   @relation(fields: [clientes_id], references: [idClientes], onDelete: NoAction, onUpdate: NoAction, map: "fk_lancamentos_clientes1")
+  contas             contas?     @relation(fields: [contas_id], references: [idContas], onDelete: NoAction, onUpdate: NoAction, map: "fk_lancamentos_contas1")
+  usuarios           usuarios    @relation(fields: [usuarios_id], references: [idUsuarios], onDelete: NoAction, onUpdate: NoAction, map: "fk_lancamentos_usuarios1")
+  os                 os[]
+  vendas             vendas[]
+
+  @@index([categorias_id], map: "fk_lancamentos_categorias1_idx")
+  @@index([clientes_id], map: "fk_lancamentos_clientes1")
+  @@index([contas_id], map: "fk_lancamentos_contas1_idx")
+  @@index([usuarios_id], map: "fk_lancamentos_usuarios1")
+}
+
+model logs {
+  idLogs  Int       @id @default(autoincrement())
+  usuario String?   @db.VarChar(80)
+  tarefa  String?   @db.VarChar(100)
+  data    DateTime? @db.Date
+  hora    DateTime? @db.Time(0)
+  ip      String?   @db.VarChar(45)
+}
+
+model marcas {
+  idMarcas     Int            @id @default(autoincrement())
+  marca        String?        @db.VarChar(100)
+  cadastro     DateTime?      @db.Date
+  situacao     Boolean?
+  equipamentos equipamentos[]
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model migrations {
+  version BigInt
+
+  @@ignore
+}
+
+model os {
+  idOs             String            @id @default(uuid())
+  dataInicial      DateTime?         @db.Date
+  dataFinal        DateTime?         @db.Date
+  garantia         String?           @db.VarChar(45)
+  descricaoProduto String            @db.Text
+  defeito          String?           @db.Text
+  status           String?           @db.VarChar(45)
+  observacoes      String?           @db.Text
+  laudoTecnico     String?           @db.Text
+  valorTotal       Decimal?          @default(0.00) @db.Decimal(10, 2)
+  desconto         Decimal?          @default(0.00) @db.Decimal(10, 2)
+  valor_desconto   Decimal?          @default(0.00) @db.Decimal(10, 2)
+  tipo_desconto    String?           @db.VarChar(8)
+  clientes_id      String
+  usuarios_id      String
+  lancamento       Int?
+  faturado         Boolean
+  garantias_id     Int?
+  anexos           anexos[]
+  cobrancas        cobrancas[]
+  equipamentos_os  equipamentos_os[]
+  clientes         clientes          @relation(fields: [clientes_id], references: [idClientes], onDelete: NoAction, onUpdate: NoAction, map: "fk_os_clientes1")
+  lancamentos      lancamentos?      @relation(fields: [lancamento], references: [idLancamentos], onDelete: NoAction, onUpdate: NoAction, map: "fk_os_lancamentos1")
+  usuarios         usuarios          @relation(fields: [usuarios_id], references: [idUsuarios], onDelete: NoAction, onUpdate: NoAction, map: "fk_os_usuarios1")
+  produtos_os      produtos_os[]
+  servicos_os      servicos_os[]
+
+  @@index([clientes_id], map: "fk_os_clientes1")
+  @@index([garantias_id], map: "fk_os_garantias1")
+  @@index([lancamento], map: "fk_os_lancamentos1")
+  @@index([usuarios_id], map: "fk_os_usuarios1")
+}
+
+model permissoes {
+  idPermissao Int        @id @default(autoincrement())
+  nome        String     @db.VarChar(80)
+  permissoes  String?    @db.Text
+  situacao    Boolean?
+  data        DateTime?  @db.Date
+  usuarios    usuarios[]
+}
+
+model produtos {
+  idProdutos      String            @id @default(uuid())
+  codDeBarra      String?           @db.VarChar(70)
+  descricao       String            @db.VarChar(80)
+  unidade         String?           @db.VarChar(10)
+  precoCompra     Decimal?          @db.Decimal(10, 2)
+  precoVenda      Decimal           @db.Decimal(10, 2)
+  estoque         Int
+  estoqueMinimo   Int?
+  saida           Boolean?
+  entrada         Boolean?
+  itens_de_vendas itens_de_vendas[]
+  produtos_os     produtos_os[]
+}
+
+model produtos_os {
+  idProdutos_os String   @id @default(uuid())
+  quantidade    Int
+  descricao     String?  @db.VarChar(80)
+  preco         Decimal? @default(0.00) @db.Decimal(10, 2)
+  os_id         String
+  produtos_id   String
+  subTotal      Decimal? @default(0.00) @db.Decimal(10, 2)
+  os            os       @relation(fields: [os_id], references: [idOs], onDelete: NoAction, onUpdate: NoAction, map: "fk_produtos_os_os1")
+  produtos      produtos @relation(fields: [produtos_id], references: [idProdutos], onDelete: NoAction, onUpdate: NoAction, map: "fk_produtos_os_produtos1")
+
+  @@index([os_id], map: "fk_produtos_os_os1")
+  @@index([produtos_id], map: "fk_produtos_os_produtos1")
+}
+
+model resets_de_senha {
+  id              Int      @id @default(autoincrement())
+  email           String   @db.VarChar(200)
+  token           String   @db.VarChar(255)
+  data_expiracao  DateTime @db.DateTime(0)
+  token_utilizado Int      @db.TinyInt
+}
+
+model servicos {
+  idServicos  String        @id @default(uuid())
+  nome        String        @db.VarChar(45)
+  descricao   String?       @db.VarChar(45)
+  preco       Decimal       @db.Decimal(10, 2)
+  servicos_os servicos_os[]
+}
+
+model servicos_os {
+  idServicos_os Int      @id @default(autoincrement())
+  servico       String?  @db.VarChar(80)
+  quantidade    Float?
+  preco         Decimal? @default(0.00) @db.Decimal(10, 2)
+  os_id         String
+  servicos_id   String
+  subTotal      Decimal? @default(0.00) @db.Decimal(10, 2)
+  os            os       @relation(fields: [os_id], references: [idOs], onDelete: NoAction, onUpdate: NoAction, map: "fk_servicos_os_os1")
+  servicos      servicos @relation(fields: [servicos_id], references: [idServicos], onDelete: NoAction, onUpdate: NoAction, map: "fk_servicos_os_servicos1")
+
+  @@index([os_id], map: "fk_servicos_os_os1")
+  @@index([servicos_id], map: "fk_servicos_os_servicos1")
+}
+
+model usuarios {
+  idUsuarios     String        @id @default(uuid())
+  nome           String?       @db.VarChar(80)
+  rg             String?       @db.VarChar(20)
+  cpf            String?       @db.VarChar(20)
+  cep            String?       @db.VarChar(9)
+  rua            String?       @db.VarChar(70)
+  numero         String?       @db.VarChar(15)
+  bairro         String?       @db.VarChar(45)
+  cidade         String?       @db.VarChar(45)
+  estado         String?       @db.VarChar(20)
+  email          String        @db.VarChar(80)
+  senha          String?       @db.VarChar(200)
+  telefone       String?       @db.VarChar(20)
+  celular        String?       @db.VarChar(20)
+  situacao       Boolean?
+  dataCadastro   DateTime      @default(now()) @db.Date
+  permissoes_id  Int?
+  dataExpiracao  DateTime?     @db.Date
+  url_image_user String?       @db.VarChar(255)
+  garantias      garantias[]
+  lancamentos    lancamentos[]
+  os             os[]
+  permissoes     permissoes?   @relation(fields: [permissoes_id], references: [idPermissao], onDelete: NoAction, onUpdate: NoAction, map: "fk_usuarios_permissoes1")
+  vendas         vendas[]
+
+  @@index([permissoes_id], map: "fk_usuarios_permissoes1_idx")
+}
+
+model vendas {
+  idVendas            Int               @id @default(autoincrement())
+  dataVenda           DateTime?         @db.Date
+  valorTotal          Decimal?          @default(0.00) @db.Decimal(10, 2)
+  desconto            Decimal?          @default(0.00) @db.Decimal(10, 2)
+  valor_desconto      Decimal?          @default(0.00) @db.Decimal(10, 2)
+  tipo_desconto       String?           @db.VarChar(8)
+  faturado            Boolean?
+  observacoes         String?           @db.Text
+  observacoes_cliente String?           @db.Text
+  clientes_id         String
+  usuarios_id         String?
+  lancamentos_id      Int?
+  cobrancas           cobrancas[]
+  itens_de_vendas     itens_de_vendas[]
+  clientes            clientes          @relation(fields: [clientes_id], references: [idClientes], onDelete: NoAction, onUpdate: NoAction, map: "fk_vendas_clientes1")
+  lancamentos         lancamentos?      @relation(fields: [lancamentos_id], references: [idLancamentos], onDelete: NoAction, onUpdate: NoAction, map: "fk_vendas_lancamentos1")
+  usuarios            usuarios?         @relation(fields: [usuarios_id], references: [idUsuarios], onDelete: NoAction, onUpdate: NoAction, map: "fk_vendas_usuarios1")
+
+  @@index([clientes_id], map: "fk_vendas_clientes1")
+  @@index([lancamentos_id], map: "fk_vendas_lancamentos1")
+  @@index([usuarios_id], map: "fk_vendas_usuarios1")
+}
+
+enum email_queue_status {
+  pending
+  sending
+  sent
+  failed
+}
