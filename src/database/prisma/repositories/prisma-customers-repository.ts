@@ -2,7 +2,7 @@ import { Customer } from "../../../application/entities/Customer";
 import { prisma } from "../../../lib/prisma";
 import { CustomersRepository } from "../../../application/repositories/customersRepository";
 import { PrismaCustomerMapper } from "../mappers/prisma-customer-mapper";
-import { NotFoundError } from "../../../customs/errors";
+import { AppError, NotFoundError } from "../../../customs/errors";
 
 export class PrismaCustomersRepository implements CustomersRepository {
   async count(): Promise<number> {
@@ -15,6 +15,27 @@ export class PrismaCustomersRepository implements CustomersRepository {
     await prisma.clientes.create({
       data: row
     })
+  }
+
+  async update(data: Customer): Promise<void> {
+    const count = await prisma.clientes.count({
+      where: { idClientes: data.id }
+    })
+
+    if(count === 0){
+      throw new AppError('invalid customer ID')
+    }
+
+    const row = PrismaCustomerMapper.toPrisma(data)
+
+    await prisma.clientes.update({
+      data: row,
+      where: { idClientes: data.id }
+    })
+  }
+
+  async delete(customerId: string): Promise<void> {
+    await prisma.clientes.delete({ where: { idClientes: customerId } })
   }
 
   async findOne(id: string): Promise<Customer> {

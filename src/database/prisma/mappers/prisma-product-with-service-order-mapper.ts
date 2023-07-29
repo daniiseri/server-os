@@ -5,6 +5,7 @@ import { FindProduct } from "../../../application/use-cases/find-product";
 import { PrismaProductsRepository } from "../repositories/prisma-products-repository";
 import { PrismaServiceOrdersRepository } from "../repositories/prisma-service-orders-repository";
 import { FindServiceOrder } from "../../../application/use-cases/find-service-order";
+import { Product } from "../../../application/entities/Product";
 
 export class PrismaProductWithServiceOrderMapper {
   static toPrisma(productWithServiceOrder: ProductWithServiceOrder): produtos_os {
@@ -32,5 +33,15 @@ export class PrismaProductWithServiceOrderMapper {
     },
       productWithServiceOrder.idProdutos_os
     )
+  }
+
+  static toHttp(product: Product): any{
+    return {
+      id: product.id,
+      description: product.description,
+      purchasePrice: product.purchasePrice,
+      salePrice: product.salePrice,
+      stock: product.stock
+    }
   }
 }

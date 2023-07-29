@@ -1,6 +1,6 @@
 import { Service } from "../../../application/entities/Service";
 import { ServicesRepository } from "../../../application/repositories/servicesRepository";
-import { NotFoundError } from "../../../customs/errors";
+import { AppError, NotFoundError } from "../../../customs/errors";
 import { prisma } from "../../../lib/prisma";
 import { PrismaSeviceMapper } from '../mappers/prisma-service-mapper'
 
@@ -10,6 +10,29 @@ export class PrismaServicesRepository implements ServicesRepository {
 
     await prisma.servicos.create({
       data: row
+    })
+  }
+
+  async update(data: Service): Promise<void> {
+    const count = await prisma.servicos.count({
+      where: { idServicos: data.id }
+    })
+
+    if(count === 0){
+      throw new AppError('invalid service ID')
+    }
+
+    const row = PrismaSeviceMapper.toPrisma(data)
+
+    await prisma.servicos.update({
+      data: row,
+      where: { idServicos: data.id }
+    })
+  }
+
+  async delete(serviceId: string): Promise<void> {
+    await prisma.servicos.delete({
+      where: { idServicos: serviceId }
     })
   }
 
